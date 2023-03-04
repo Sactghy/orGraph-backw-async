@@ -119,7 +119,6 @@ class BuildGraph
              if ( itTargets.del == 2 ) routes.pop_back(); } }
 
 
-
            for ( auto& r : routes )
            { for ( auto& rr1 : r ) std::cout << rr1.id << " ";
              std::cout << " |: " << r.size() << std::endl; }
