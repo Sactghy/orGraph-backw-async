@@ -25,7 +25,7 @@ class Target
 
             t = new std::thread ( th );
 
-            } else { t->join(); m.lock(); std::cout << " id : " << id << " << "; m.unlock(); delete t;  }
+            } else { t->join(); std::cout << " id : " << id << " << "; delete t;  }
 
         }
 
