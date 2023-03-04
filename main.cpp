@@ -163,7 +163,7 @@ int main()
 
     std::this_thread::sleep_for(std::chrono::milliseconds(123)); std::cout << std::endl;
 
-    for ( size_t p = csize; p > m; p-- ) { g.current[p-1]->task(); g.current.pop_back();}
+    for ( size_t p = csize; p > m; p-- ) { g.current[p-1]->task(); g.current.pop_back(); }
 
     csize -= i; std::cout << std::endl; /* std::cout << std::endl << m << " || " << g.current.size() << std::endl; */ }
 
