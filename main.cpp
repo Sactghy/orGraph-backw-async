@@ -170,7 +170,7 @@ int main()
     for ( std::vector<std::vector<Target>>::iterator it1 = g.routes.begin(); it1 != g.routes.end(); )
     { if ( it1.operator*().empty() ) g.routes.erase(it1); else it1++; }
 
-    std::cout << " - - - - - - - - - - " << std::endl; }
+    std::cout << " ----- " << std::endl; }
 
     return 0;
 }
