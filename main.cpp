@@ -11,7 +11,7 @@ class Target
 {
     public:
 
-        size_t id{}, *imx = nullptr;
+        size_t id{}, id_gst{static_cast<size_t>(-1)}, *imx = nullptr;
 
         std::thread *t = nullptr;
 
@@ -71,7 +71,8 @@ class BuildGraph
 
 
            struct iTg { std::vector<Target> *r = nullptr;
-                        int vcnt{0}, del{0};
+                        int vcnt{0}, del{0}; bool isnew{false};
+                        size_t first_id{}, m_id{};
 
                void operator()( Target &t,
                                 size_t maxV,
@@ -79,7 +80,7 @@ class BuildGraph
                                 std::vector<Target> &targets,
                                 std::vector<std::vector<Target>> &routes )
              {
-                   if ( !r ) { endcheck = 0; r = new std::vector<Target>; r->push_back( t ); }
+                   if ( !r ) { endcheck = 0; r = new std::vector<Target>; r->push_back( t ); first_id = t.id; m_id = first_id; }
 
                    bool yn{false}, yynn{false};
 
@@ -97,9 +98,9 @@ class BuildGraph
 
                        if ( del == 1 ) del++;
 
-                       if ( endcheck == 1 || endcheck == 4 || endcheck == 5 ) { t.imx[n]++; endcheck = 2; }
+                       if ( endcheck == 1 || endcheck == 4 || endcheck == 5 ) { t.imx[n]++; endcheck = 2; t.id_gst = first_id; }
 
-                       } else if ( t.imx[n] > 1 ) yynn = 1;
+                       } else if ( t.imx[n] > 1 ) { yynn = 1; m_id = t.id_gst; }
 
                    } if ( !yn && !endcheck && vcnt ) { routes.push_back(*r); endcheck = 5; }
 
@@ -116,7 +117,7 @@ class BuildGraph
 
                itTargets.operator()( targets[i], maxV, endcheck, targets, routes );
 
-             if ( itTargets.del == 2 ) routes.pop_back(); } }
+             if ( itTargets.m_id != targets[i].id && itTargets.del == 2 ) routes.pop_back(); } }
 
 
            for ( auto& r : routes )
@@ -132,8 +133,8 @@ class BuildGraph
 
 int main()
 {
-    BuildGraph g { { {6,12},{9,11},{0,2},{1,2},{1,3},{10,13},{13,15},{10,14},{15,16},{14,17},
-                     {2,4},{2,5},{2,6},{1,7},{3,8},{3,5},{3,9},{5,10},{7,18},{18,19},{19,17} },
+    BuildGraph g { { {6,12},{9,11},{0,2},{1,2},{1,3},{10,13},{10,14},{13,15},{14,15},{15,19},
+                     {2,4},{2,5},{2,6},{1,7},{3,8},{3,5},{3,9},{5,10},{7,16},{16,17},{16,18} },
                      std::thread::hardware_concurrency() };
 
         try { g.init(); } catch ( std::exception )
@@ -170,7 +171,7 @@ int main()
     for ( std::vector<std::vector<Target>>::iterator it1 = g.routes.begin(); it1 != g.routes.end(); )
     { if ( it1.operator*().empty() ) g.routes.erase(it1); else it1++; }
 
-    std::cout << " ----- " << std::endl; }
+    std::cout << " ----- " << std::endl; } 
 
     return 0;
 }
