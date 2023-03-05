@@ -147,8 +147,7 @@ int x =0;
 
         int c2{}; for ( auto& g : g.routes ) { int c3{}; if ( c1 != c2 )
 
-             for ( auto& c : g ) { if ( c.id == t->id ) { if ( c3 != g.size() - 1 ) iscc = true; //else g.back().del = 1;
-                 } c3++; } c2++; }
+             for ( auto& c : g ) { if ( c.id == t->id ) { if ( c3 != g.size() - 1 ) iscc = true; } c3++; } c2++; }
 
         if ( !iscc ) { for ( auto& c : g.current ) if ( c->id == t->id ) iscc = true;
                        if ( !iscc ) g.current.push_back( t ); r.back().del = 1; }
