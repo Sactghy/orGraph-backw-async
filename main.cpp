@@ -117,7 +117,7 @@ class BuildGraph
 
                itTargets.operator()( targets[i], maxV, endcheck, targets, routes );
 
-             if ( itTargets.m_id != targets[i].id && itTargets.del == 2 ) routes.pop_back(); } }
+               if ( itTargets.m_id != targets[i].id && itTargets.del == 2 ) routes.back().pop_back(); } }
 
 
            for ( auto& r : routes )
@@ -134,7 +134,8 @@ class BuildGraph
 int main()
 {
     BuildGraph g { { {6,12},{9,11},{0,2},{1,2},{1,3},{10,13},{10,14},{13,15},{14,15},{15,19},
-                     {2,4},{2,5},{2,6},{1,7},{3,8},{3,5},{3,9},{5,10},{7,16},{16,17},{16,18} },
+                     {2,4},{2,5},{2,6},{1,7},{3,8},{3,5},{3,9},{5,10},{7,16},{16,17},{16,18},
+                     {20,21},{21,2},{21,22},{22,23},{22,24},{23,25},{24,25},{25,26},{26,27} },
                      std::thread::hardware_concurrency() };
 
         try { g.init(); } catch ( std::exception )
@@ -171,7 +172,7 @@ int main()
     for ( std::vector<std::vector<Target>>::iterator it1 = g.routes.begin(); it1 != g.routes.end(); )
     { if ( it1.operator*().empty() ) g.routes.erase(it1); else it1++; }
 
-    std::cout << " ----- " << std::endl; } 
+    std::cout << " ----- " << std::endl; }
 
     return 0;
 }
