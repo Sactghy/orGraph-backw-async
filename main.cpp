@@ -140,7 +140,6 @@ int main()
 
         { std::cout << "Not ok" << std::endl; return 0; } std::cout << std::endl;
 
-int x =0;
     while ( !g.routes.empty() ) { int c1{}; x++;
 
     for ( auto& r : g.routes ) { Target *t = &r.back(); bool iscc{};
