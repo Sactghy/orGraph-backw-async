@@ -11,7 +11,7 @@ class Target
 {
     public:
 
-        size_t id{}, id_gst{static_cast<size_t>(-1)}, *imx = nullptr;
+        size_t id{}, id_gst{static_cast<size_t>(-1)}, *imx = nullptr, del{};
 
         std::thread *t = nullptr;
 
@@ -35,7 +35,7 @@ class Target
 
 class BuildGraph
 {
-        std::vector<std::tuple<Target,Target>> p;
+        std::vector<std::pair<Target,Target>> p;
 
     public :
 
@@ -45,12 +45,12 @@ class BuildGraph
         std::vector<Target*> current;
         std::vector<Target> targets;
 
-        BuildGraph( std::initializer_list<std::tuple<Target,Target>> _p, size_t _t) : p {_p}, num_threads{_t} { }
+        BuildGraph( std::initializer_list<std::pair<Target,Target>> _p, size_t _t) : p {_p}, num_threads{_t} { }
 
         void init( )
         {
-           struct { bool operator()( std::tuple<Target,Target> a,
-                                     std::tuple<Target,Target> b ) const
+           struct { bool operator()( std::pair<Target,Target> a,
+                                     std::pair<Target,Target> b ) const
                           { return ( std::get<0>(a).id < std::get<0>(b).id ); } } sortA;
 
            std::sort( p.begin(), p.end(), sortA );
@@ -115,9 +115,7 @@ class BuildGraph
 
              while ( endcheck ) { iTg itTargets;
 
-               itTargets.operator()( targets[i], maxV, endcheck, targets, routes );
-
-               if ( itTargets.m_id != targets[i].id && itTargets.del == 2 ) routes.back().pop_back(); } }
+               itTargets.operator()( targets[i], maxV, endcheck, targets, routes ); } }
 
 
            for ( auto& r : routes )
@@ -133,26 +131,31 @@ class BuildGraph
 
 int main()
 {
-    BuildGraph g { { {6,12},{9,11},{0,2},{1,2},{1,3},{10,13},{10,14},{13,15},{14,15},{15,19},
-                     {2,4},{2,5},{2,6},{1,7},{3,8},{3,5},{3,9},{5,10},{7,16},{16,17},{16,18},
-                     {20,21},{21,2},{21,22},{22,23},{22,24},{23,25},{24,25},{25,26},{26,27} },
+    BuildGraph g { { {6,12},{9,11},{0,2},{1,2},{1,3},{10,13},{10,14},{13,15},{14,15},{15,18},{18,19},
+                     {2,4},{2,5},{2,6},{1,7},{3,8},{3,5},{3,9},{5,10},{7,16},{16,17},{17,2},
+                     {20,21},{21,22},{22,23},{22,24},{23,25},{24,25},{25,26},{26,27},{27,2} },
                      std::thread::hardware_concurrency() };
 
         try { g.init(); } catch ( std::exception )
 
         { std::cout << "Not ok" << std::endl; return 0; } std::cout << std::endl;
 
+int x =0;
+    while ( !g.routes.empty() ) { int c1{}; x++;
 
-    while ( !g.routes.empty() ) { int c1{};
+    for ( auto& r : g.routes ) { Target *t = &r.back(); bool iscc{};
 
-    for ( auto& r : g.routes ) { if ( !r.empty() ) { Target *t = &r.back(); bool iscc{};
+        int c2{}; for ( auto& g : g.routes ) { int c3{}; if ( c1 != c2 )
 
-        int c2{}; for ( auto& g : g.routes ) { if ( c1 != c2 )
+             for ( auto& c : g ) { if ( c.id == t->id ) { if ( c3 != g.size() - 1 ) iscc = true; //else g.back().del = 1;
+                 } c3++; } c2++; }
 
-             for ( auto& c : g ) { if ( c.id == t->id ) iscc = true; } c2++; }
+        if ( !iscc ) { for ( auto& c : g.current ) if ( c->id == t->id ) iscc = true;
+                       if ( !iscc ) g.current.push_back( t ); r.back().del = 1; }
 
-        if ( !iscc ) g.current.push_back( t ); r.pop_back(); } c1++; }
+        c1++; } std::cout << std::endl;
 
+    for ( auto& r : g.routes ) if ( r.back().del == 1 ) r.pop_back();
 
     size_t csize = g.current.size(), i = ( csize < g.num_threads ) ? csize : g.num_threads;
 
