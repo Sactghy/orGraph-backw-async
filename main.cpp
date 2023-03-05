@@ -58,6 +58,7 @@ class BuildGraph
                                  bool b1{false}, b2 {false};
 
             for ( auto& t : targets ) {
+                
                 if ( t.id == a1.id ) b1 = true;
                 if ( t.id == a2.id ) b2 = true; }
 
