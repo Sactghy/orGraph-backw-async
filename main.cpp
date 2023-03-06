@@ -35,24 +35,16 @@ class Target
 
 class BuildGraph
 {
-        struct Edge { Target from, to; };
-
         struct iTg { void operator()( Target &t, size_t maxV, int &endcheck, int &tcnt, std::vector<Target> &targets )
-            
+
             {
-                if ( !tcnt ) { endcheck = 0; tcnt++; }
+                if ( !tcnt ) { endcheck = 0; tcnt++; } bool yn{false};
 
-                bool yn{false};
-
-                for ( size_t n = 0; n < maxV; n++ ) {
-
-                    if ( t.imx[n] == 1 ) { yn = true; 
+                for ( size_t n = 0; n < maxV; n++ ) { if ( t.imx[n] == 1 ) { yn = true;
 
                     if ( endcheck == 2 ) endcheck = 3;
 
-                    tcnt++;
-
-                    if ( tcnt > maxV ) throw std::exception();
+                    tcnt++; if ( tcnt > maxV ) throw std::exception();
 
                     this->operator()( targets[n], maxV, endcheck, tcnt, targets );
 
@@ -63,6 +55,8 @@ class BuildGraph
                 if ( endcheck == 2 ) endcheck = 4;
 
           } };
+
+        struct Edge { Target from, to; };
         
         std::vector<Edge> p;
 
@@ -113,11 +107,13 @@ class BuildGraph
            } std::cout << std::endl;
 
 
+           
            for ( size_t i = 0; i < maxV; i++ ) { int endcheck{1};
 
              while ( endcheck ) { iTg itTargets; int tcnt{};
 
                itTargets.operator()( targets[i], maxV, endcheck, tcnt, targets ); } }
+           
 
         }
 
@@ -130,7 +126,7 @@ int main()
 {
     BuildGraph g { { {6,12},{9,11},{0,2},{1,2},{1,3},{10,13},{10,14},{13,15},{14,15},{15,19},
                      {2,4},{2,5},{2,6},{1,7},{3,8},{3,5},{3,9},{5,10},{7,16},{16,17},{17,18},
-                     {20,21},{21,22},{22,23},{22,24},{23,25},{24,25},{25,26},{26,27},{27,20} },
+                     {20,21},{21,22},{22,23},{22,24},{23,25},{24,25},{25,26},{26,27},{27,0} },
                      std::thread::hardware_concurrency() };
 
         try { g.init(); } catch ( std::exception )
