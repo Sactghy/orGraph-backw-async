@@ -130,9 +130,10 @@ int main()
 
         if ( isready && !t.ready ) g.current.push_back(&t); }
 
-        if ( g.current.empty() ) { g.ready = true; } if ( g.ready ) break;
 
-
+        if ( g.current.empty() ) { g.ready = true; break; }
+        
+        
         for ( auto& c : g.current ) for ( auto& t : g.targets ) t.imx[c->id] = 0;
 
 
@@ -154,5 +155,5 @@ int main()
         std::cout << "-----" << std::endl;
 
     } return 0;
-    
+
 }
