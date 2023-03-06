@@ -11,7 +11,7 @@ class Target
 {
     public:
 
-        size_t id{}, *imx = nullptr, del{};
+        size_t id{}, *imx = nullptr;
 
         std::thread *t = nullptr;
 
