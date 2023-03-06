@@ -118,7 +118,7 @@ int main()
 
         try { g.init(); } catch ( std::exception )
 
-        { std::cout << "Loop exception!" << std::endl; return 0; } std::cout << std::endl;
+        { std::cout << "Loop!" << std::endl; return 0; } std::cout << std::endl;
 
 
     while ( !g.ready ) {
@@ -126,7 +126,7 @@ int main()
 
         for ( auto& t : g.targets ) { bool isready{true};
 
-        for (size_t n = 0; n < g.maxV; n++) if ( t.imx[n] >= 1 ) isready = false;
+        for (size_t n = 0; n < g.maxV; n++) if ( t.imx[n] == 1 ) isready = false;
 
         if ( isready && !t.ready ) g.current.push_back(&t); }
 
@@ -153,7 +153,6 @@ int main()
 
         std::cout << "-----" << std::endl;
 
-    }
-
-    return 0;
+    } return 0;
+    
 }
