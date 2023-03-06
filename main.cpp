@@ -36,14 +36,44 @@ class Target
 class BuildGraph
 {
         struct Edge { Target from, to; };
+
+        struct iTg { void operator()( Target &t, size_t maxV, int &endcheck, int &tcnt, std::vector<Target> &targets )
+            
+            {
+                if ( !tcnt ) { endcheck = 0; tcnt++; }
+
+                bool yn{false};
+
+                for ( size_t n = 0; n < maxV; n++ ) {
+
+                    if ( t.imx[n] == 1 ) { yn = true; 
+
+                    if ( endcheck == 2 ) endcheck = 3;
+
+                    tcnt++;
+
+                    if ( tcnt > maxV ) throw std::exception();
+
+                    this->operator()( targets[n], maxV, endcheck, tcnt, targets );
+
+                    if ( endcheck == 1 || endcheck == 4 || endcheck == 5 ) { t.imx[n]++; endcheck = 2; }
+
+                    } } if ( !yn && !endcheck && tcnt > 1 ) { tcnt++; endcheck = 5; }
+
+                if ( endcheck == 2 ) endcheck = 4;
+
+          } };
+        
         std::vector<Edge> p;
 
     public :
 
-        size_t num_threads;
+        bool ready{false};
 
-        std::vector<std::vector<Target>> routes;
+        size_t num_threads{1}, maxV{};
+
         std::vector<Target*> current;
+
         std::vector<Target> targets;
 
         BuildGraph( std::initializer_list<Edge> _p, size_t _t) : p {_p}, num_threads{_t} { }
@@ -58,7 +88,7 @@ class BuildGraph
                                  bool b1{false}, b2 {false};
 
             for ( auto& t : targets ) {
-                
+
                 if ( t.id == a1.id ) b1 = true;
                 if ( t.id == a2.id ) b2 = true; }
 
@@ -70,7 +100,8 @@ class BuildGraph
            std::sort( targets.begin(), targets.end(), sortB );
 
 
-           size_t maxV = targets.back().id+1;
+           maxV = targets.back().id + 1;
+
            for ( auto& t : targets )  { t.imx = new size_t[maxV]{0};
 
              for ( auto& a : p ) if ( a.from.id == t.id ) t.imx[a.to.id] = 1;
@@ -82,50 +113,11 @@ class BuildGraph
            } std::cout << std::endl;
 
 
-           struct iTg { std::vector<Target> *r = nullptr;
-                        int vcnt{0};
-
-               void operator()( Target &t,
-                                size_t maxV,
-                                int &endcheck,
-                                std::vector<Target> &targets,
-                                std::vector<std::vector<Target>> &routes )
-             {
-                   if ( !r ) { endcheck = 0; r = new std::vector<Target>; r->push_back( t ); }
-
-                   bool yn{false}, yynn{false};
-
-                   for ( size_t n = 0; n < maxV; n++ ) {
-
-                       if ( t.imx[n] == 1 ) { yn = true; vcnt++;
-
-                       if ( endcheck == 2 ) endcheck = 3;
-
-                       r->push_back( targets[n] );
-
-                       if ( r->size() > maxV ) throw std::exception();
-
-                       this->operator()( targets[n], maxV, endcheck, targets, routes );
-
-                       if ( endcheck == 1 || endcheck == 4 || endcheck == 5 ) { t.imx[n]++; endcheck = 2; }
-
-                       } } if ( !yn && !endcheck && vcnt ) { routes.push_back(*r); endcheck = 5; }
-
-                   if ( endcheck == 2 ) endcheck = 4;
-
-             } };
-
-
            for ( size_t i = 0; i < maxV; i++ ) { int endcheck{1};
 
-             while ( endcheck ) { iTg itTargets;
+             while ( endcheck ) { iTg itTargets; int tcnt{};
 
-               itTargets.operator()( targets[i], maxV, endcheck, targets, routes ); } }
-
-
-           for ( auto& r : routes ) { for ( auto& rr1 : r ) std::cout << rr1.id << " ";
-
-             std::cout << " |: " << r.size() << std::endl; }
+               itTargets.operator()( targets[i], maxV, endcheck, tcnt, targets ); } }
 
         }
 
@@ -138,51 +130,47 @@ int main()
 {
     BuildGraph g { { {6,12},{9,11},{0,2},{1,2},{1,3},{10,13},{10,14},{13,15},{14,15},{15,19},
                      {2,4},{2,5},{2,6},{1,7},{3,8},{3,5},{3,9},{5,10},{7,16},{16,17},{17,18},
-                     {20,21},{21,22},{22,23},{22,24},{23,25},{24,25},{25,26},{26,27},{27,2} },
+                     {20,21},{21,22},{22,23},{22,24},{23,25},{24,25},{25,26},{26,27},{27,20} },
                      std::thread::hardware_concurrency() };
 
         try { g.init(); } catch ( std::exception )
 
-        { std::cout << "Not ok" << std::endl; return 0; } std::cout << std::endl;
+        { std::cout << "Loop exception!" << std::endl; return 0; } std::cout << std::endl;
 
 
-    while ( !g.routes.empty() ) { int c1{};
-
-    for ( auto& r : g.routes ) { Target *t = &r.back(); bool iscc{};
-
-        int c2{}; for ( auto& g : g.routes ) { int c3{}; if ( c1 != c2 )
-
-             for ( auto& c : g ) { if ( c.id == t->id ) {
-
-                     if ( c3 != g.size() - 1 ) iscc = true; } c3++; } c2++; }
-
-        if ( !iscc ) { for ( auto& c : g.current ) if ( c->id == t->id ) iscc = true;
-
-                       if ( !iscc ) g.current.push_back( t ); r.back().del = 1; }  c1++; }
+    while ( !g.ready ) {
 
 
-    for ( auto& r : g.routes ) if ( r.back().del == 1 ) r.pop_back();
+        for ( auto& t : g.targets ) { bool isready{true};
+
+        for (size_t n = 0; n < g.maxV; n++) if ( t.imx[n] >= 1 ) isready = false;
+
+        if ( isready && !t.ready ) g.current.push_back(&t); }
+
+        if ( g.current.empty() ) { g.ready = true; } if ( g.ready ) break;
 
 
-    size_t csize = g.current.size(), i = ( csize < g.num_threads ) ? csize : g.num_threads;
+        for ( auto& c : g.current ) for ( auto& t : g.targets ) t.imx[c->id] = 0;
 
 
-    while ( !g.current.empty() ) {
+        size_t csize = g.current.size(), i = ( csize < g.num_threads ) ? csize : g.num_threads;
 
-    size_t m = ( static_cast<int>(csize) - static_cast<int>(i) >= 0 ) ? csize - i : 0;
 
-    for ( size_t p = csize; p > m; p-- ) g.current[p-1]->task();
+        while ( !g.current.empty() ) {
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(123)); std::cout << std::endl;
+        size_t m = ( static_cast<int>(csize) - static_cast<int>(i) >= 0 ) ? csize - i : 0;
 
-    for ( size_t p = csize; p > m; p-- ) { g.current[p-1]->task(); g.current.pop_back(); }
+        for ( size_t p = csize; p > m; p-- ) g.current[p-1]->task();
 
-    csize -= i; std::cout << std::endl; /* std::cout << std::endl << m << " || " << g.current.size() << std::endl; */ }
+        std::this_thread::sleep_for(std::chrono::milliseconds(123)); std::cout << std::endl;
 
-    for ( std::vector<std::vector<Target>>::iterator it1 = g.routes.begin(); it1 != g.routes.end(); )
-    { if ( it1.operator*().empty() ) g.routes.erase(it1); else it1++; }
+        for ( size_t p = csize; p > m; p-- ) { g.current[p-1]->task(); g.current.pop_back(); }
 
-    std::cout << "-----" << std::endl; }
+        csize -= i; std::cout << std::endl; }
+
+        std::cout << "-----" << std::endl;
+
+    }
 
     return 0;
 }
