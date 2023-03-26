@@ -57,8 +57,7 @@ class BuildGraph
            std::sort( p.begin(), p.end(), sortA );
 
 
-           for ( auto& a : p ) { Target a1 = a.from, a2 = a.to;
-                                 bool b1{false}, b2 {false};
+           for ( auto& a : p ) { Target a1 = a.from, a2 = a.to; bool b1{false}, b2 {false};
 
             for ( auto& t : targets ) {
 
@@ -75,7 +74,9 @@ class BuildGraph
 
            maxV = targets.back().id + 1;
 
-           for ( auto& t : targets )  { t.imx = new size_t[maxV]{0};
+           if ( maxV != targets.size() ) throw std::runtime_error("ID missed!");
+
+           for ( auto& t : targets ) { t.imx = new size_t[maxV]{0};
 
              for ( auto& a : p ) if ( a.from.id == t.id ) t.imx[a.to.id] = 1;
 
@@ -90,7 +91,7 @@ class BuildGraph
 
              void operator()( Target &t, size_t maxV, std::vector<Target> &targets )
 
-             {   tcnt++; if ( tcnt > maxV ) throw std::exception();
+             {   tcnt++; if ( tcnt > maxV ) throw std::runtime_error("Loop!");
 
                  for ( size_t n = 0; n < maxV; n++ ) if ( t.imx[n] == 1 )
 
@@ -99,7 +100,7 @@ class BuildGraph
              } };
 
 
-           for ( auto& t : targets )  { iTg itTargets; itTargets.operator()( t, maxV, targets ); }
+         for ( auto& t : targets ) { iTg itTargets; itTargets.operator()( t, maxV, targets ); }
 
 
         }
@@ -113,16 +114,15 @@ int main()
 {
     BuildGraph g { { {6,12},{9,11},{0,2},{1,2},{1,3},{10,13},{10,14},{13,15},{14,15},{15,19},
                      {2,4},{2,5},{2,6},{1,7},{3,8},{3,5},{3,9},{5,10},{7,16},{16,17},{17,18},
-                     {20,21},{21,22},{22,23},{22,24},{23,25},{24,25},{25,26},{26,27},{27,2} },
+                     {20,21},{21,22},{22,23},{22,24},{23,25},{24,25},{25,26},{26,27},{27,28} },
                      std::thread::hardware_concurrency() };
 
-        try { g.init(); } catch ( std::exception )
+        try { g.init(); } catch ( std::runtime_error e )
 
-        { std::cout << "Loop!" << std::endl; return 0; } std::cout << std::endl;
+        { std::cout << e.what() << std::endl; return 0; } std::cout << std::endl;
 
 
     while ( !g.ready ) {
-
 
         for ( auto& t : g.targets ) { bool isready{true};
 
@@ -132,8 +132,8 @@ int main()
 
 
         if ( g.current.empty() ) { g.ready = true; break; }
-        
-        
+
+
         for ( auto& c : g.current ) for ( auto& t : g.targets ) t.imx[c->id] = 0;
 
 
@@ -146,7 +146,7 @@ int main()
 
         for ( size_t p = csize; p > m; p-- ) g.current[p-1]->task();
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(123)); std::cout << std::endl;
+        std::this_thread::sleep_for( std::chrono::milliseconds(123) ); std::cout << std::endl;
 
         for ( size_t p = csize; p > m; p-- ) { g.current[p-1]->task(); g.current.pop_back(); }
 
