@@ -49,7 +49,7 @@ class BuildGraph
 
         std::vector<Target> targets;
 
-        BuildGraph( std::initializer_list<Edge> _p, size_t _t) : p {_p}, num_threads{_t} { }
+        BuildGraph( std::initializer_list<Edge> _p, size_t _t ) : p {_p}, num_threads{_t} { }
 
         void init( )
         {
