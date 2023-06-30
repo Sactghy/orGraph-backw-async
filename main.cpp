@@ -11,19 +11,19 @@ class Target
 {
     public:
 
-        size_t id{}, *imx = nullptr;
+        size_t id{}, *imx = nullptr; // imx -> a line from incident matrix for current id
 
         std::thread *t = nullptr;
 
-        bool ready{false};
+        bool thstate{false};
 
         Target( size_t _id ) : id {_id} { }
 
-        void task() { if ( !ready ) { ready = true;
+        void task() { if ( !thstate ) {
 
             auto th = [ & ] ( ) { m.lock(); std::cout << " id : " << id << " || "; m.unlock(); };
 
-            t = new std::thread ( th );
+            t = new std::thread ( th ); thstate = true;
 
             } else { t->join(); std::cout << " id : " << id << " << "; delete t;  }
 
@@ -35,11 +35,11 @@ class Target
 
 class BuildGraph
 {
-        struct Edge { Target from, to; };
-
-        std::vector<Edge> p;
+    class Edge { public: Target from, to; };
 
     public :
+
+        std::vector<Edge> p;
 
         bool ready{false};
 
@@ -49,13 +49,14 @@ class BuildGraph
 
         std::vector<Target> targets;
 
-        BuildGraph( std::initializer_list<Edge> _p, size_t _t ) : p {_p}, num_threads{_t} { }
+        BuildGraph( std::initializer_list<Edge> _p, size_t _t) : p {_p}, num_threads{_t} { }
 
         void init( )
         {
+           // separates targets ->
+
            auto sortA = [] ( Edge a, Edge b ) { return a.from.id < b.from.id; };
            std::sort( p.begin(), p.end(), sortA );
-
 
            for ( auto& a : p ) { Target a1 = a.from, a2 = a.to; bool b1{false}, b2 {false};
 
@@ -67,10 +68,11 @@ class BuildGraph
             if ( !b1 ) targets.push_back(a1);
             if ( !b2 ) targets.push_back(a2); }
 
-
            auto sortB = [] ( Target a, Target b ) { return a.id < b.id; };
            std::sort( targets.begin(), targets.end(), sortB );
 
+
+           // incidents for each target ->
 
            maxV = targets.back().id + 1;
 
@@ -87,6 +89,8 @@ class BuildGraph
            } std::cout << std::endl;
 
 
+           // checking on loop ->
+
            struct iTg { int tcnt{};
 
              void operator()( Target &t, size_t maxV, std::vector<Target> &targets )
@@ -99,15 +103,14 @@ class BuildGraph
 
              } };
 
-
          for ( auto& t : targets ) { iTg itTargets; itTargets.operator()( t, maxV, targets ); }
-
 
         }
 
         ~BuildGraph() { for ( auto& t : targets ) t.clearmem(); }
 
 };
+
 
 int main()
 {
@@ -153,6 +156,8 @@ int main()
 
         std::cout << "-----" << std::endl;
 
-    } return 0;
+    }
+
+    return 0;
 
 }
