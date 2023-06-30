@@ -130,7 +130,7 @@ int main()
 
         for (size_t n = 0; n < g.maxV; n++) if ( t.imx[n] == 1 ) isready = false;
 
-        if ( isready && !t.ready ) g.current.push_back(&t); }
+        if ( isready && !t.thstate ) g.current.push_back(&t); }
 
 
         if ( g.current.empty() ) { g.ready = true; break; }
