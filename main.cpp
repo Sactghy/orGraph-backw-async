@@ -11,7 +11,7 @@ class Target
 {
     public:
 
-        size_t id{}, *imx = nullptr; // imx -> a line from incident matrix for current id
+        size_t id{}, *imx = nullptr; // imx -> a line from incident matrix of the graph for current id
 
         std::thread *t = nullptr;
 
@@ -53,12 +53,16 @@ class BuildGraph
 
         void init( )
         {
-           // separates targets ->
+           // separates targets as distinct nodes ->
 
            auto sortA = [] ( Edge a, Edge b ) { return a.from.id < b.from.id; };
            std::sort( p.begin(), p.end(), sortA );
 
+           std::cout << "Edges : " << std::endl;
+
            for ( auto& a : p ) { Target a1 = a.from, a2 = a.to; bool b1{false}, b2 {false};
+
+               std::cout << a.from.id << " -> "  << a.to.id << std::endl;
 
             for ( auto& t : targets ) {
 
@@ -72,9 +76,9 @@ class BuildGraph
            std::sort( targets.begin(), targets.end(), sortB );
 
 
-           // incidents for each target ->
+           // builds incidents for each node ->
 
-           maxV = targets.back().id + 1;
+           maxV = targets.back().id + 1;  std::cout << std::endl << "Incident matrix : " << std::endl;
 
            if ( maxV != targets.size() ) throw std::runtime_error("ID missed!");
 
@@ -84,7 +88,7 @@ class BuildGraph
 
              if ( t.id < 10 ) std::cout << "0"; std::cout << t.id << " ::: ";
 
-             for ( size_t n = 0; n < maxV; n++ ) std::cout << t.imx[n] << " | "; std::cout << std::endl;
+             for ( size_t n = 0; n < maxV; n++ ) std::cout << t.imx[n] << " "; std::cout << std::endl;
 
            } std::cout << std::endl;
 
